@@ -15,6 +15,8 @@ const Maze = () => {
 
   let grid = [];
   let maxDistance = 0;
+  let selectedPoints = [];
+  const colors = ["#ff2900", "#00ff0b", "#278def", "#f700ff"];
 
   const isLinked = (cellA, cellB) => {
     const link = cellA.links.find(
@@ -90,9 +92,6 @@ const Maze = () => {
     ctx.strokeStyle = "#000";
     ctx.lineWidth = lineWidth;
 
-    const selectedPoints = selectPoints();
-    console.log(selectedPoints);
-
     for (let row of grid) {
       for (let cell of row) {
         if (cell.row) {
@@ -120,21 +119,19 @@ const Maze = () => {
       }
     }
 
-    selectedPoints.forEach((point) => {
-      ctx.fillStyle = "red";
+    selectedPoints.forEach((point, index) => {
+      ctx.fillStyle = colors[index % colors.length];
       ctx.beginPath();
-      ctx.arc(point.centerX, point.centerY, 10, 0, 2 * Math.PI);
+      ctx.arc(point.centerX, point.centerY, lineWidth * 2, 0, 2 * Math.PI);
       ctx.fill();
     });
   };
 
-  const renderPath = () => {
-    let row = grid.length - 1;
-    let cell = { ...grid[row][grid[row].length * 0.75] };
+  const renderPath = (startCell, color) => {
+    let cell = { ...startCell };
     let nextCell = null;
     let { distance } = cell;
-
-    ctx.strokeStyle = "#f00";
+    ctx.strokeStyle = color;
 
     ctx.beginPath();
     ctx.moveTo(cell.centerX, cell.centerY);
@@ -183,8 +180,13 @@ const Maze = () => {
   };
 
   const solveMaze = () => {
+    if (selectedPoints.length === 0) {
+      selectedPoints = selectPoints();
+    }
     calculateDistance();
-    renderPath();
+    selectedPoints.forEach((point, index) => {
+      renderPath(point, colors[index % colors.length]);
+    });
   };
 
   const createGrid = () => {
@@ -325,7 +327,9 @@ const Maze = () => {
   const createMaze = () => {
     resize();
     createGrid();
+    selectedPoints = selectPoints();
     huntAndKill();
+    renderMaze();
   };
 
   const handleCreateMaze = () => {
